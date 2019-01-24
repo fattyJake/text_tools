@@ -1,0 +1,57 @@
+POST
+absence of
+declined
+denied
+denies
+denying
+did not exhibit
+doubt
+negative for
+no
+no significant
+no significant sign of
+no significant signs of
+no significant evidence of
+no cause of
+no complaints of
+no evidence of
+no sign of
+no signs of
+nor complaints of
+nor evidence of
+nor sign of
+nor signs of
+not demonstrate
+not have
+patient was not
+ruled out
+rules out
+versus
+without  # this should be removed!!!
+without indication of
+without sign of
+: normal
+; normal
+\. normal
+\.normal
+:normal
+;normal
+
+PRE
+is of normal
+are of normal
+was of normal
+is normal
+are normal
+was normal
+
+IGNORES
+no further
+not able to be
+not certain if
+not certain whether
+not necessarily
+not rule out
+without any further
+without difficulty
+without further
