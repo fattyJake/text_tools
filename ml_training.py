@@ -7,14 +7,20 @@
 # Created:  10.10.2015
 ###############################################################################
 
-
+import os
 import re
 import scipy
+import platform
 import wikipedia
 from tqdm import tqdm
 from sklearn.svm import SVC
 from sklearn.calibration import CalibratedClassifierCV
 from text_tools import preprocessing,extraction,vectorizer,vocab_tools,ml_visualizations
+#if platform.system()=='Linux':   import fasttext as fasttext # fasttext for linux
+#if platform.system()=='Windows': import fastText as fasttext # fasttext for windows
+from multiprocessing import cpu_count
+import fastText as fasttext
+
 
 def convolutional_classifier(pos,neg,windowsize=100,step=50,vocab=None,test_percent=0.2,min_vars=0):
     """
@@ -44,7 +50,8 @@ def convolutional_classifier(pos,neg,windowsize=100,step=50,vocab=None,test_perc
         neg       = neg[neg_split:]
     
     # train the classifier
-    classifier = CalibratedClassifierCV(SVC(C=0.1,kernel='linear',probability=True),method='isotonic').fit(ML_input,ML_output)
+    #classifier = CalibratedClassifierCV(SVC(C=0.1,kernel='linear',probability=True),method='isotonic').fit(ML_input,ML_output)
+    classifier = SVC(C=0.1,kernel='linear',probability=True).fit(ML_input,ML_output)
     
     # if a percentage of test is requested
     if test_percent:
@@ -104,7 +111,45 @@ def wiki_ensemble(articles,windowsize=100,step=5,vocab=None,balance=True,return_
     # return results
     if return_vocab:    return ensemble,vocab
     else:               return ensemble
+
+def fasttext_train(exemplars,labels,model_name='fasttext_model'):
+    """
+    @param exemplars: list of strings
+    @param labels: list of labels for each string
+    @param model_name: name of the model if preferred
+    """
+    # initialization
+    assert len(exemplars)==len(labels)
+
+    # insert all the training data into a text file
+#    with open('training.txt','a') as f:
+#        for i in range(len(exemplars)):
+#            f.write('__label__'+str(labels[i])+'  '+str(exemplars[i])+'\n')
     
+    # train and drop model
+    model = fasttext.train_supervised('CRG Training/training_new_crg_0.05.txt',label='__label__',lr=0.1,dim=128,epoch=25,
+                                      loss="hs",neg=200,wordNgrams=2,thread=cpu_count(),lrUpdateRate=150,verbose=2)
+    model.save_model(model_name+'.bin')
+
+def fasttext_deploy(exemplars,model_name='fasttext_model',threshold=None):
+    """
+    @param exemplars: list of strings
+    @param model_name: name of the model if preferred
+    """
+    
+    #initialize
+    if isinstance(exemplars,str): exemplars = [exemplars]
+    model = fasttext.load_model(model_name+'.bin')
+
+    # generate output depending on system
+    output = model.predict(exemplars) # 1 for probabilities
+    output = [[output[0][i][0],output[1][i][0]] for i in range(len(output[0]))]      # get first instance of each
+
+    # remobe labels and return
+    output = [[re.sub(r'^__label__',r'',i[0]),i[1]] for i in output]
+    if threshold: output = [i if i[1]>threshold else ['',i[1]] for i in output]
+    return output
+
 def manually_review_data(data):
     """
     use this function to hand train text exemplars

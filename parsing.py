@@ -20,6 +20,7 @@ import urllib
 from text_tools import preprocessing
 
 
+
 def build_document_from_dir(directory=None):
 	"""
 	@param directory : a path to a dir. Defaults to cwd.
@@ -72,6 +73,18 @@ def check_connection():
         return False
 
 
+
+def pdf_extract(filepath):
+	import pytesseract
+	from tqdm import tqdm
+	from pdf2image import convert_from_path
+	pytesseract.pytesseract.tesseract_cmd = r"""C:\Program Files (x86)\Tesseract-OCR\tesseract.exe"""
+
+	text = []
+	for i in tqdm(convert_from_path(filepath)): text.append(pytesseract.image_to_string(i))
+	return text
+	
+		
 def audio_extract(filepath):
     """
     given a wav file pull the text

@@ -21,6 +21,20 @@ def preprocess(text,negex=False,stem=True):
     if stem: text = stem_all(text)      # does not impact space count
     return text
 
+def force_ascii(texts):
+    texts = copy(texts)
+    strBOOL = False
+    if isinstance(texts,str):
+        texts = [texts]
+        strBOOL = True
+    
+    # check hashmap for each char else use "_"
+    charmap = pickle.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)),'pickles','charmap'),'rb'))
+    for i in range(len(texts)): texts[i] = ''.join([charmap.get(i,'_') for i in texts[i]])
+    
+    if strBOOL==True: return texts[0]
+    return texts
+
 def force_lower(texts):
     texts = copy(texts)
     strBOOL = False
@@ -28,8 +42,7 @@ def force_lower(texts):
         texts = [texts]
         strBOOL = True
     
-    for i in range(len(texts)):
-        texts[i] = texts[i].lower()
+    for i in range(len(texts)): texts[i] = texts[i].lower()
     
     if strBOOL==True: return texts[0]   
     return texts
@@ -135,7 +148,7 @@ def remove_false_periods(texts):
     if strBOOL==True: return texts[0]
     return texts
 
-def drop_negex(texts):
+def drop_negex(texts,comma_delimit=False):
     """
     @param text: text string
     @param n: if None, remove until sentance ending punct, else # of words max
@@ -143,7 +156,8 @@ def drop_negex(texts):
     NOTE: see negex.txt for items used
     """
     # load all locations
-    punct = ',!()+.;:?\n\t\r\f' # comma was removed from delimit list
+    punct = '!()+.;:?\n\t\r\f\-\\/' # comma was removed from delimit list
+    if comma_delimit: punct = punct+','
     with open(os.path.join(os.path.dirname(os.path.realpath(__file__)),'pickles','negex'),'rb') as fp:
         negex = pickle.load(fp)
         negex_false = pickle.load(fp)

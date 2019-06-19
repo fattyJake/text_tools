@@ -27,7 +27,6 @@ patient was not
 ruled out
 rules out
 versus
-without  # this should be removed!!!
 without indication of
 without sign of
 : normal

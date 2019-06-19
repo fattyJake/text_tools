@@ -110,7 +110,7 @@ def trif_vectorizer(texts):
     if isinstance(texts,str): texts = [texts]
     re_punct    = re.compile(r'[^a-z0-9\. ]')
     re_nonalpha = re.compile(r'[^a-zP\.]+')
-    trigrams = pickle.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)),r'pickles/trigrams'), 'rb'))
+    trigrams = pickle.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)),r'pickles','trigrams'), 'rb'))
     hashdict = {k: v for v, k in enumerate(trigrams)}
     
     # iterate through texts
@@ -129,7 +129,6 @@ def trif_vectorizer(texts):
         vector = normalize(vector).ravel()
         output.append(scipy.sparse.csr_matrix(vector))
     return scipy.sparse.vstack(output)
-
 
 def _ngrams(text, n):
     while True:

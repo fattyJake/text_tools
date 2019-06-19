@@ -12,17 +12,17 @@
 # 2. entity resolution and temporal resolution
 # 3. general statistics from text
 
-import text_tools.extraction
-import text_tools.preprocessing
-import text_tools.readability
-import text_tools.resolution
-import text_tools.similarity
-import text_tools.stat
-import text_tools.tokens
-import text_tools.vectorizer
-import text_tools.vocab_tools
-import text_tools.words
-import text_tools.highlighting
+from . import extraction
+from . import preprocessing
+from . import readability
+from . import resolution
+from . import similarity
+from . import stat
+from . import tokens
+from . import vectorizer
+from . import vocab_tools
+from . import words
+from . import highlighting
 
-import text_tools.ml_training
-import text_tools.ml_visualizations
+from . import ml_training
+from . import ml_visualizations

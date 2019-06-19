@@ -8,6 +8,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.calibration import calibration_curve
 from sklearn.metrics import roc_curve,auc
 from sklearn.metrics import precision_recall_curve
 from text_tools import preprocessing,vectorizer,extraction
@@ -129,8 +130,8 @@ def plot_performance(y_true,y_score,datapoint=False,title=None):
     do: plot ROC,PR,PT
     """
     # receiver operating characteristic
-    plt.figure(1,figsize=(14,3))
-    plt.subplot(131)
+    plt.figure(1,figsize=(18,3))
+    plt.subplot(141)
     fpr,tpr,_ = roc_curve(y_true,y_score)
     plt.plot(fpr,tpr, color='darkorange',lw=2,label='ROC curve (area = %0.2f)' % auc(fpr,tpr))
     plt.plot([0, 1], [0, 1],'k--')
@@ -142,7 +143,7 @@ def plot_performance(y_true,y_score,datapoint=False,title=None):
     plt.legend(loc="lower right")
     
     # precision recall
-    plt.subplot(132)
+    plt.subplot(142)
     precision,recall,thresholds = precision_recall_curve(y_true, y_score)
     plt.step(recall, precision, color='b', alpha=0.2,where='post')
     plt.fill_between(recall, precision, step='post', alpha=0.2,color='b')
@@ -154,7 +155,7 @@ def plot_performance(y_true,y_score,datapoint=False,title=None):
     plt.title('Precision Recall')
 
     # precision threshold
-    plt.subplot(133)
+    plt.subplot(143)
     precision,recall,thresholds = precision_recall_curve(y_true, y_score)
     plt.scatter(thresholds, precision[:-1], color='k',s=1)
     if datapoint: plt.plot((0,1),(datapoint[1],datapoint[1]),color="red")
@@ -165,8 +166,20 @@ def plot_performance(y_true,y_score,datapoint=False,title=None):
     plt.grid()
     plt.title('Precision Threshold')
 
+    plt.subplot(144)
+    fraction_of_positives,mean_predicted_value = calibration_curve(y_true,y_score,n_bins=5)
+    plt.plot(mean_predicted_value,fraction_of_positives)
+    plt.title('Calibration')
+    plt.xlabel('Mean Predicted Value')
+    plt.ylabel('Fraction of Positives')
+    plt.xlim([0.0,1.0])
+    plt.ylim([0.0,1.0])
+    plt.grid()
+    plt.plot((0,1),'k--')
+
     if title: plt.suptitle(title)
-    plt.show()
+    plt.show()    
+    
     
 def plot_timeline(text,classifier,vocab,windowsize,step=5):
     """

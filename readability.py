@@ -38,7 +38,7 @@ def check_by_trigrams(doc,minimum=False):
     """
     text = copy(doc)
     if not text: return 1.0
-    classifier = pickle.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)),r'pickles/readability_classifier_trigram'), 'rb'))
+    classifier = pickle.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)),r'pickles','readability_classifier_trigram'),'rb'))
     if isinstance(text,list):
         results = classifier.predict_proba(vectorizer.trif_vectorizer(text))[:,1]
         
