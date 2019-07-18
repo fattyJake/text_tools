@@ -8,6 +8,8 @@ import pickle
 import text_tools
 from copy import copy
 from stemming.porter2 import stem
+import pyap
+from itertools import chain
 
 def preprocess(text,negex=False,stem=True):
     """
@@ -47,7 +49,7 @@ def force_lower(texts):
     if strBOOL==True: return texts[0]   
     return texts
 
-def force_punct(texts):
+def force_punct(texts, all_punct=False):
     texts = copy(texts)
     strBOOL = False
     if isinstance(texts,str): 
@@ -56,6 +58,7 @@ def force_punct(texts):
     
     # precompile
     re_ws     = re.compile(r'[-_/<>](?=[a-z])|(?<=[a-z])[-_/<>]')   # replace underscores/dashes/slashes/html tags with nothing
+    re_punct  = re.compile('[%s]' % re.escape('!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~•—'))
     re_spaces = re.compile(r'[ ]{2,}')   # simplify multi-spaces
     re_dots   = re.compile(r'[.]{2,}')   # simplify multi-periods
     re_poss   = re.compile(r"\b'\b")    # drop posessions/contractions
@@ -63,6 +66,7 @@ def force_punct(texts):
     # perform
     for i in range(len(texts)):
         texts[i] = re.sub(re_ws,r'',texts[i])
+        if all_punct: texts[i] = re.sub(re_punct, ' ', texts[i])
         texts[i] = re.sub(re_spaces,r' ',texts[i])
         texts[i] = re.sub(re_dots,r'.',texts[i])
         texts[i] = re.sub(re_poss,r'',texts[i])
@@ -81,7 +85,80 @@ def force_abbr(texts):
     abbr_pattern   = pickle.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), r'pickles','abbr_pattern'), 'rb'))
     texts = [abbr_pattern.sub(lambda x: abbr_dict[x.group()], text) for text in texts]
 
-    if strBOOL==True: return texts[0]   
+    if strBOOL: return texts[0]
+    return texts
+
+def force_number(texts, keep=True):
+    texts = copy(texts)
+    strBOOL = False
+    if isinstance(texts,str):
+        texts = [texts]
+        strBOOL = True
+
+    texts = [re.sub(r"\-?\d+\.?\d*((e|E)(\+|\-)\d+)?", "NUM" if keep else "", text) for text in texts]
+
+    if strBOOL: return texts[0]
+    return texts
+
+def force_demographic(texts, keep=True):
+    texts = copy(texts)
+    strBOOL = False
+    if isinstance(texts,str):
+        texts = [texts]
+        strBOOL = True
+
+    # find all dates
+    re_date = r'(\b\d{4}[-]\d{1,2}[-]\d{1,2}\b|\b\d{1,2}[-]\d{1,2}[-]\d{4}\b|\b\d{1,2}[-]\d{1,2}[-]\d{2}\b|\b\d{4}[\.]\d{1,2}[\.]\d{1,2}\b|\b\d{1,2}[\.]\d{1,2}[\.]\d{4}\b|\b\d{1,2}[\.]\d{1,2}[\.]\d{2}\b|\b\d{4}[/]\d{1,2}[/]\d{1,2}\b|\b\d{1,2}[/]\d{1,2}[/]\d{4}\b|\b\d{1,2}[/]\d{1,2}[/]\d{2}\b)|((\b\d{1,2}\D{0,3})?\b(?:(J|j)an(?:uary)?|(F|f)eb(?:ruary)?|(M|m)ar(?:ch)?|(A|a)pr(?:il)?|(M|m)ay|(J|j)un(?:e)?|(J|j)ul(?:y)?|(A|a)ug(?:ust)?|(S|s)ep?(?:tember)?|(O|o)ct(?:ober)?|((N|n)ov|(D|d)ec)(?:ember)?)\D{1,2}(\d{1,2}(st|nd|th)?\D?)?\D?(\d{4}))'
+    for i in range(len(texts)):
+        if keep:
+            date_list = [(d.start(), d.end()) for d in re.finditer(re_date, texts[i], flags=re.IGNORECASE)]
+            for start, end in zip(date_list): texts[i] = texts[i][:start] + re.sub(r"\S", "X", texts[i][start: end]) + texts[i][end:]
+        else:
+            texts[i] = re.sub(re_date, '', texts[i], flags=re.IGNORECASE)
+
+    # find all times
+    re_time = r'(([0]?[1-9]|1[0-2])((\:|\.)[0-5][0-9]){1,2}( )?(am|pm))|(([0]?[0-9]|1[0-9]|2[0-3])((\:|\.)[0-5][0-9]){1,2})'
+    for i in range(len(texts)):
+        if keep:
+            time_list = [(t.start(), t.end()) for t in re.finditer(re_time, texts[i], flags=re.IGNORECASE)]
+            for start, end in zip(time_list): texts[i] = texts[i][:start] + re.sub(r"\S", "X", texts[i][start: end]) + texts[i][end:]
+        else:
+            texts[i] = re.sub(re_time, '', texts[i], flags=re.IGNORECASE)
+
+    # find all address
+    for i in range(len(texts)):
+        addr_list = [str(j) for j in pyap.parse(texts[i], country='US')]
+        for addr in addr_list:
+            if keep:
+                addr_match = re.search(addr, texts[i])
+                start, end = addr_match.start(), addr_match.end()
+                texts[i] = texts[i][:start] + re.sub(r"\S", "X", texts[i][start: end]) + texts[i][start:]
+            else:
+                texts[i] = re.sub(addr, '', texts[i])
+
+    # find all phone numbers
+    for i in range(len(texts)):
+        re_phone = re.compile(r'(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}')
+        if keep:
+            phone_list = [(t.start(), t.end()) for t in re.finditer(re_phone, texts[i])]
+            for start, end in zip(phone_list): texts[i] = texts[i][:start] + re.sub(r"\S", "X", texts[i][start: end]) + texts[i][end:]
+        else:
+            texts[i] = re.sub(re_phone, '', texts[i])
+
+    if strBOOL: return texts[0]
+    return texts
+
+def split_into_sentence(texts, chaining=False):
+    texts = copy(texts)
+    strBOOL = False
+    if isinstance(texts,str):
+        texts = [texts]
+        strBOOL = True
+
+    texts = [re.split(r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<!\s\.)(?<=\.|\?|\!)\s", text) for text in texts]
+
+    if strBOOL: return texts[0]
+    if chaining: texts = chain(*texts)
     return texts
 
 def strip_line_returns(texts):
@@ -101,7 +178,7 @@ def strip_line_returns(texts):
     for i in range(len(texts)):
         texts[i] = re.sub(re_LR,r' ',texts[i])
     
-    if strBOOL==True: return texts[0]   
+    if strBOOL: return texts[0]
     return texts
 
 def strip_parenthesized(texts):
@@ -136,8 +213,8 @@ def remove_false_periods(texts):
     
     #precompile and perform
     re_acronym = re.compile(r'(?<=\.[a-zA-Z])\.')
-    re_periods = re.compile(r'\. ?[a-zA-Z]')
-    prefixes = ['amb','bgen','brigen','capt','col','dr','gen','gov','hon','inc','jr','lieut','lt','maj','mdme','mr','mrs','ms','msgr','messrs','prof','rep','rev','sen','sgt','sr'] + list('abcdefghijklmnopqrstuvwxyz')
+    re_periods = re.compile(r'\.\s*[a-zA-Z]')
+    prefixes = ['amb','bgen','brigen','capt','col','dr','gen','gov','hon','inc','jr','lieut','lt','maj','mdme','mr','mrs','ms','msgr','messrs','no','prof','rep','rev','sen','sgt','sr'] + list('abcdefghijklmnopqrstuvwxyz')
     for i in range(len(texts)):
         texts[i] = re.sub(re_acronym,r'',texts[i])        
         locs = [m.start() for m in re.finditer(re_periods,texts[i])]

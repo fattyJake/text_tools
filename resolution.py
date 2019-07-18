@@ -76,14 +76,14 @@ def fetch_dates(text,century_reversion=None,return_ci=False):
             elif century_reversion is not None:                                            # if 2-year lagging, assume century depending on current date
                 
                 # if 'mm.-/dd.-/yy' form lagging form, and year >= century revision year, drop a century
-                if int(nums[2])>century_reversion: nums[2] = '19' + nums[2]      
+                if int(nums[2])>century_reversion: nums[2] = '19' + nums[2]
                 else: nums[2] = '20' + nums[2]
                 date = '/'.join(nums)
                 dateobjs.append(datetime.strptime(date,"%m/%d/%Y").date())
         except: continue
 
     # language date search (SEP 30th, 2011 -> long or abbrev, day, 4digit year)
-    date_list = re.finditer(r'(\b\d{1,2}\D{0,3})?\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep?(?:tember)?|oct(?:ober)?|(nov|dec)(?:ember)?)\D?(\d{1,2}(st|nd|th)?\D?)?\D?(\d{4})',text,flags=re.IGNORECASE)
+    date_list = re.finditer(r'(\b\d{1,2}\D{0,3})?\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep?(?:tember)?|oct(?:ober)?|(nov|dec)(?:ember)?)\D{1,2}(\d{1,2}(st|nd|th)?\D?)?\D?(\d{4})',text,flags=re.IGNORECASE)
     date_list = [(i.group().lower(),int(i.start()+((i.end()-i.start())/2))) for i in date_list]
     ci        = ci + [i[1] for i in date_list]
     date_list = [i[0] for i in date_list]
