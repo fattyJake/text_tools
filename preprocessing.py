@@ -130,11 +130,11 @@ def force_demographic(texts, keep=True):
         addr_list = [str(j) for j in pyap.parse(texts[i], country='US')]
         for addr in addr_list:
             if keep:
-                addr_match = re.search(addr, texts[i])
+                addr_match = re.search(re.escape(addr), texts[i])
                 start, end = addr_match.start(), addr_match.end()
                 texts[i] = texts[i][:start] + re.sub(r"\S", "X", texts[i][start: end]) + texts[i][start:]
             else:
-                texts[i] = re.sub(addr, '', texts[i])
+                texts[i] = re.sub(re.escape(addr), '', texts[i])
 
     # find all phone numbers
     for i in range(len(texts)):
