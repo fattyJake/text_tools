@@ -32,22 +32,26 @@ def highlight_by_term(text, terms, color="#6cbbf7"):
     return text
 
 
-def highlight_by_token(text, locs, color="#6cbbf7", title="Test"):
+def highlight_by_token(text, locations, color="#6cbbf7", title="Test"):
     """
     return: windows of text centered on the term
     @param text: string
-    @param locs: list of token start and end, along with display tag (optional)
+    @param locations: list of token start and end, along with display tag (optional)
     @param color: hex color to use
     @param title: HTML title
     """
     # get token dict
-    text = text.strip()
+    locs = locations[:]
+    text = _html_escape(text.strip())
     delimiters = (
         [0] + [m.start() + 1 for m in re.finditer(r"\s+", text)] + [len(text)]
     )
     token_dict = {delimiters.index(d): d for d in delimiters}
 
     # get start indices
+    if len(locs[0]) == 3:
+        for i, loc in enumerate(locs):
+            locs[i][2] = ' * ' + loc[2]
     locs = list(locs for locs, _ in itertools.groupby(locs))
     locs.sort(reverse=True)
     locs = _cluster_highlights(locs)
@@ -93,19 +97,19 @@ def highlight_by_token(text, locs, color="#6cbbf7", title="Test"):
             /* Tooltip text */
             .tooltip .tooltiptext {
               visibility: hidden;
-              width: 200px;
+              width: 400px;
               background-color: #555;
               color: #fff;
-              text-align: center;
+              text-align: left;
               padding: 5px 0;
               border-radius: 6px;
 
               /* Position the tooltip text */
               position: absolute;
               z-index: 1;
-              bottom: 125%;
-              left: 50%;
-              margin-left: -60px;
+              top: -5px;
+              left: 105%;
+              margin-left: 5px;
 
               /* Fade in tooltip */
               opacity: 0;
@@ -114,14 +118,14 @@ def highlight_by_token(text, locs, color="#6cbbf7", title="Test"):
 
             /* Tooltip arrow */
             .tooltip .tooltiptext::after {
-              content: "";
+              content: " ";
               position: absolute;
-              top: 100%;
-              left: 50%;
-              margin-left: -5px;
+              top: 15px;
+              right: 100%; /* To the left of the tooltip */
+              margin-top: -5px;
               border-width: 5px;
               border-style: solid;
-              border-color: #555 transparent transparent transparent;
+              border-color: transparent black transparent transparent;
             }
 
             /* Show the tooltip text when you mouse over the tooltip container */
@@ -130,15 +134,24 @@ def highlight_by_token(text, locs, color="#6cbbf7", title="Test"):
               opacity: 1;
             }
         </style>
-        
+
         <h3>"""
         + title
         + """</h3>
-        
+
         <p style="white-space: pre-line">
         """
     )
     text = css + text + "\n</p>\n</body>\n</html>"
+    return text
+
+
+def _html_escape(text):
+    text = re.sub(r'\"', '&quot;', text)
+    text = re.sub(r'\&', '&amp;', text)
+    text = re.sub(r'\<', '&lt;', text)
+    text = re.sub(r'\>', '&gt;', text)
+
     return text
 
 
@@ -176,7 +189,7 @@ def _cluster_highlights(locs):
             locs[i][0] = min(cluster_list)
             locs[i][1] = max(cluster_list)
             if len(locs[i]) == 3:
-                locs[i][2] = ", ".join(
+                locs[i][2] = "<br>".join(
                     list(set([locs[i][2].strip(), locs[i + 1][2].strip()]))
                 )
             locs.pop(i + 1)

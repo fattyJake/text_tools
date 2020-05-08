@@ -26,7 +26,7 @@ from text_tools import (
 # if platform.system()=='Linux':   import fasttext as fasttext # fasttext for linux
 # if platform.system()=='Windows': import fastText as fasttext # fasttext for windows
 from multiprocessing import cpu_count
-import fastText as fasttext
+import fasttext as fasttext
 
 
 def convolutional_classifier(
