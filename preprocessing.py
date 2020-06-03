@@ -88,12 +88,12 @@ def force_punct(texts, all_punct=False):
 
     # perform
     for i in range(len(texts)):
-        texts[i] = re.sub(re_ws, r"", texts[i])
+        texts[i] = re.sub(re_ws, r" ", texts[i])
         if all_punct:
             texts[i] = re.sub(re_punct, " ", texts[i])
         texts[i] = re.sub(re_spaces, r" ", texts[i])
+        texts[i] = re.sub(re_poss, r" ", texts[i])
         texts[i] = re.sub(re_dots, r".", texts[i])
-        texts[i] = re.sub(re_poss, r"", texts[i])
 
     if strBOOL == True:
         return texts[0]
@@ -145,7 +145,11 @@ def force_number(texts, keep=True):
         strBOOL = True
 
     texts = [
-        re.sub(r"\-?\d+\.?\d*((e|E)(\+|\-)\d+)?", "NUM" if keep else "", text)
+        re.sub(
+            r"\b\-?\d+\.?\d*((e|E)(\+|\-)\d+)?\b",
+            "NUM" if keep else "",
+            text
+        )
         for text in texts
     ]
 

@@ -64,7 +64,7 @@ def highlight_by_token(text, locations, color="#6cbbf7", title="Test"):
                 + color
                 + """">"""
                 + text[token_dict[j[0] - 1] : token_dict[j[1]]]
-                + """</span>"""
+                + """</span>&nbsp;"""
                 + text[token_dict[j[1]] :]
             )
     if len(locs[0]) == 3:
@@ -80,7 +80,7 @@ def highlight_by_token(text, locations, color="#6cbbf7", title="Test"):
                 + text[token_dict[j[0] - 1] : token_dict[j[1]]]
                 + """<span class="tooltiptext">"""
                 + str(j[2]).upper()
-                + """</span></span>"""
+                + """</span></span>&nbsp;"""
                 + text[token_dict[j[1]] :]
             )
     css = (
