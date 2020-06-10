@@ -12,14 +12,20 @@ import math
 from collections import Counter
 
 
-def jaccard(textA, textB):
+def jaccard(textA, textB, mode=2):
     """
     @param textA & textB: strings
+    @param mode: 0 as textA based denomitor; 1 as textB based and 2 as both
     return: jaccard similarity of unique strings
     """
     tokA = set(textA.split())
     tokB = set(textB.split())
-    return len(tokA.intersection(tokB)) / float(len(tokA | tokB))
+    if mode == 0:
+        return len(tokA.intersection(tokB)) / float(len(tokA))
+    elif mode == 1:
+        return len(tokA.intersection(tokB)) / float(len(tokB))
+    else:
+        return len(tokA.intersection(tokB)) / float(len(tokA | tokB))
 
 
 def cosine(textA, textB):

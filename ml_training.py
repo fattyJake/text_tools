@@ -26,7 +26,7 @@ from text_tools import (
 # if platform.system()=='Linux':   import fasttext as fasttext # fasttext for linux
 # if platform.system()=='Windows': import fastText as fasttext # fasttext for windows
 from multiprocessing import cpu_count
-import fasttext as fasttext
+import fasttext
 
 
 def convolutional_classifier(
@@ -160,14 +160,14 @@ def wiki_ensemble(
         return ensemble
 
 
-def fasttext_train(exemplars, labels, model_name="fasttext_model"):
+def fasttext_train(model_name="fasttext_model"):
     """
     @param exemplars: list of strings
     @param labels: list of labels for each string
     @param model_name: name of the model if preferred
     """
     # initialization
-    assert len(exemplars) == len(labels)
+    # assert len(exemplars) == len(labels)
 
     # insert all the training data into a text file
     #    with open('training.txt','a') as f:
@@ -176,7 +176,7 @@ def fasttext_train(exemplars, labels, model_name="fasttext_model"):
 
     # train and drop model
     model = fasttext.train_supervised(
-        "CRG Training/training_new_crg_0.05.txt",
+        "training_new_crg_0.2.txt",
         label="__label__", # label prefix
         lr=0.1, # learning rate
         dim=128, # word embedding dimentionality

@@ -20,6 +20,7 @@ def preprocess(text, negex=False, stem=True):
     text = force_punct(text)  # does not impact space count
     text = remove_false_periods(text)  # does not impact space count
     text = force_abbr(text)  # does not impact space count
+    text = force_ascii(text) # does not impact space count
     if negex:
         text = drop_negex(text)  # does not impact space count
     if stem:
@@ -150,6 +151,42 @@ def force_number(texts, keep=True):
             "NUM" if keep else "",
             text
         )
+        for text in texts
+    ]
+
+    if strBOOL:
+        return texts[0]
+    return texts
+
+
+def force_sw(texts, keep=True):
+    texts = copy(texts)
+    strBOOL = False
+    if isinstance(texts, str):
+        texts = [texts]
+        strBOOL = True
+
+    stopwords = pickle.load(
+        open(
+            os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "pickles",
+                "stopwords",
+            ),
+            "rb",
+        )
+    )
+
+    texts = [
+        re.sub(
+            stopwords,
+            "SW" if keep else "",
+            text
+        )
+        for text in texts
+    ]
+    texts = [
+        re.sub(r'\s+', ' ', text)
         for text in texts
     ]
 
