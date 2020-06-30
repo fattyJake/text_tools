@@ -176,17 +176,17 @@ def fasttext_train(model_name="fasttext_model"):
 
     # train and drop model
     model = fasttext.train_supervised(
-        "training_new_crg_0.2.txt",
+        "training.txt",
         label="__label__", # label prefix
         lr=0.1, # learning rate
         dim=128, # word embedding dimentionality
-        epoch=25, # training epochs
-        loss="hs", # loss function, here using hierarchical softmax
-        neg=200, # negative sampling size
+        epoch=100, # training epochs
+        loss="softmax", # loss function, here using hierarchical softmax
+        neg=100, # negative sampling size
         wordNgrams=2, # how far does n grams to be considered
         thread=cpu_count(), # thread count for paralleling
         lrUpdateRate=150, # learning rate decap steps
-        verbose=2, # level of logging
+        verbose=10, # level of logging
     )
     model.save_model(model_name + ".bin")
 
