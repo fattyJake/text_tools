@@ -299,7 +299,7 @@ def split_into_sentence(texts, chaining=False):
     if strBOOL:
         return texts[0]
     if chaining:
-        texts = chain(*texts)
+        texts = list(chain(*texts))
     return texts
 
 
